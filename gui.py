@@ -7,7 +7,7 @@ from calculation import markup_calculation, save_to_csv, read_file, config_impor
 root = Tk()
 root.title("Pricing app")
 root.geometry("653x380")
-root.iconbitmap('C:\\Users\\edmun\\Documents\\Programming\\Works\\construction.ico')
+root.iconbitmap('usd.ico')
 style = ttk.Style()
 #frames
 frame1 = LabelFrame(root, text="Mark-up table", bg="#f7f8f5", fg="black", padx=36, pady=15)
