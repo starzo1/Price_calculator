@@ -17,7 +17,6 @@ def read_file(import_path):
         transformed_dict[header] = [x['Cost'],x['Turnover rating']]
     return df_read
 
-
 def markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1, value_b2, value_b3, value_b4, value_c1, value_c2, value_c3, value_c4, value_d1, value_d2, value_d3, value_d4, additional_taxes):
     global df_edited
     df_edited = df_read
@@ -72,9 +71,6 @@ def config_import_strip(text):
     stripped = stripped.replace("('", "").replace("'", "")
     result = stripped.split(", ")
     return result
-
-
-
 
 #nuspaudus mygtuka issaugoti i csv sukuria nauja faila, jei yra failas tada prideda duomenis
 def save_to_csv(file_path):

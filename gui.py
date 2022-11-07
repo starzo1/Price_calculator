@@ -1,14 +1,21 @@
+import logging
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from tkinter import filedialog as fd
 from calculation import markup_calculation, save_to_csv, read_file, config_import_strip
 
 
+logging.basicConfig(filename="calculation.log", level=logging.ERROR, format="%(asctime)s:%(levelname)s:%(message)s")
+
 root = Tk()
 root.title("Pricing app")
-root.geometry("653x380")
+root.geometry("653x400")
 root.iconbitmap('usd.ico')
 style = ttk.Style()
+menu = Menu(root)
+submenu = Menu(menu, tearoff=0)
+helpmenu = Menu(menu, tearoff=0)
+root.config(menu=menu)
 #frames
 frame1 = LabelFrame(root, text="Mark-up table", bg="#f7f8f5", fg="black", padx=36, pady=15)
 frame1.grid(row=0, column=0)
@@ -31,53 +38,70 @@ def choose_folder():
     export_folder_var.set(folder_path)
 
 def file_save_path():
-    file_folder = export_file_path.get()
-    file_name = export_file_name.get()
-    full_path = f"{file_folder}/{file_name}.csv"
-    return full_path
+    try:
+        file_folder = export_file_path.get()
+        file_name = export_file_name.get()
+        full_path = f"{file_folder}/{file_name}.csv"
+        return full_path
     
+    except PermissionError:
+        messagebox.showerror("Error", "Can't save file, no folder or file name selected")
+        logging.exception('empty entries in save location')
+        status["text"] = "Check for empty save location entries"  
+        
 def calculate():
-    #nuskaito pasirinkta faila
-    status["text"] = "Skaičiuojama..." 
-    path = import_file_path.get()
-    df_read = read_file(path)
-    
+    #nuskaito pasirinkta faila #padaryti try except jei koks value error
+    status["text"] = "Calculating..."
+    try: 
+        path = import_file_path.get()
+        df_read = read_file(path)
+    except FileNotFoundError:  
+        messagebox.showerror("Error", "Can't open file, check if file exists")
+        logging.exception('import file not found')
+        status["text"] = "Check if import file exists"  
     #paimami visi uzpildyti laukeliai
+    try:
+        cost1 = float(field_cost1.get())
+        cost2 = float(field_cost2.get()) 
+        cost3 = float(field_cost3.get())
+        vat = float(field_vat.get())
+        trnsp_cost = float(field_trnsp.get())
+        additional_cost = float(field_add_tax.get())
+        additional_taxes = (1+vat/100) * (1+trnsp_cost/100) * (1+additional_cost/100)
+        #A
+        value_a1 = ["A", cost1, float(field1.get())/100]
+        value_a2 = ["A", cost2, float(field5.get())/100]
+        value_a3 = ["A", cost3, float(field9.get())/100]
+        value_a4 = ["A", cost3, float(field13.get())/100]
+        #B
+        value_b1 = ["B", cost1, float(field2.get())/100]
+        value_b2 = ["B", cost2, float(field6.get())/100]
+        value_b3 = ["B", cost3, float(field10.get())/100]
+        value_b4 = ["B", cost3, float(field14.get())/100]
+        #C
+        value_c1 = ["C", cost1, float(field3.get())/100]
+        value_c2 = ["C", cost2, float(field7.get())/100]
+        value_c3 = ["C", cost3, float(field11.get())/100]
+        value_c4 = ["C", cost3, float(field15.get())/100]
+        #D
+        value_d1 = ["D", cost1, float(field4.get())/100]
+        value_d2 = ["D", cost2, float(field8.get())/100]
+        value_d3 = ["D", cost3, float(field12.get())/100]
+        value_d4 = ["D", cost3, float(field16.get())/100]
+       
+        #skaiciavimo funkcija
+        markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1, value_b2, value_b3, value_b4, value_c1, value_c2, value_c3, value_c4, value_d1, value_d2, value_d3, value_d4, additional_taxes)
+        save_to_csv(file_save_path())
+        status["text"] = "Calculated!"
+        
+    except ValueError:
+        messagebox.showerror("Error", "Can't calculate with zero values")
+        logging.exception('empty entries error')
+        status["text"] = "Check settings"
+   
+    except UnboundLocalError:
+        logging.exception('empty dataframe error')
     
-    cost1 = float(field_cost1.get())
-    cost2 = float(field_cost2.get()) 
-    cost3 = float(field_cost3.get())
-    vat = float(field_vat.get())
-    trnsp_cost = float(field_trnsp.get())
-    additional_cost = float(field_add_tax.get())
-    additional_taxes = (1+vat/100) * (1+trnsp_cost/100) * (1+additional_cost/100)
-    
-    
-    value_a1 = ["A", cost1, float(field1.get())/100]
-    value_a2 = ["A", cost2, float(field5.get())/100]
-    value_a3 = ["A", cost3, float(field9.get())/100]
-    value_a4 = ["A", cost3, float(field13.get())/100]
-    
-    value_b1 = ["B", cost1, float(field2.get())/100]
-    value_b2 = ["B", cost2, float(field6.get())/100]
-    value_b3 = ["B", cost3, float(field10.get())/100]
-    value_b4 = ["B", cost3, float(field14.get())/100]
-
-    value_c1 = ["C", cost1, float(field3.get())/100]
-    value_c2 = ["C", cost2, float(field7.get())/100]
-    value_c3 = ["C", cost3, float(field11.get())/100]
-    value_c4 = ["C", cost3, float(field15.get())/100]
-
-    value_d1 = ["D", cost1, float(field4.get())/100]
-    value_d2 = ["D", cost2, float(field8.get())/100]
-    value_d3 = ["D", cost3, float(field12.get())/100]
-    value_d4 = ["D", cost3, float(field16.get())/100]
-    #skaiciavimo funkcija
-    markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1, value_b2, value_b3, value_b4, value_c1, value_c2, value_c3, value_c4, value_d1, value_d2, value_d3, value_d4, additional_taxes)
-    save_to_csv(file_save_path())
-    status["text"] = "Calculated!"
-
-
 def import_config():
     file_name = fd.askopenfilename(initialdir="/", title="Select a file", filetypes=[("Text files", "*.txt")])
     fields1 = [field_cost1, field1, field2, field3, field4]
@@ -94,8 +118,8 @@ def import_config():
             line4 = lines[3]
             status["text"] = "Mark-up's imported"
     except FileNotFoundError:
-        status["text"] = "Failas nerastas"
-        return "file not found"
+        logging.exception('file not found importing settings')
+        status["text"] = "File not found!"
     
     i = -1
     for var in fields1:
@@ -135,7 +159,8 @@ def export_config():
                 file_object.write(f"{lines}\n")  
         status["text"] = "Settings saved to file"
     except FileNotFoundError:
-            return "cancelled"
+        logging.exception('file not found exporting settings')
+        return "cancelled"
     
  
 def reset():
@@ -147,7 +172,23 @@ def reset():
     ]
     for var in reset_fields:
         var.delete(0, END)
-  
+
+def close():
+    root.destroy()
+    
+def help():
+    messagebox.showinfo("info", "This is an example of short help how to use app.")
+
+#Menu
+menu.add_cascade(label="View", menu=submenu)
+menu.add_cascade(label="Help", menu=helpmenu)
+submenu.add_command(label="Reset all fields", command=reset)
+submenu.add_separator()
+submenu.add_command(label="Close", command=close)
+helpmenu.add_command(label="View help", command=help)
+helpmenu.add_separator()
+helpmenu.add_command(label="About pricing app", command=close)
+ 
 #Labels  
 label1 = ttk.Label(frame1, text="Turnover group")
 label2 = ttk.Label(frame1, text="A")
