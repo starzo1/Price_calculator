@@ -50,7 +50,6 @@ def file_save_path():
         status["text"] = "Check for empty save location entries"  
         
 def calculate():
-    #nuskaito pasirinkta faila #padaryti try except jei koks value error
     status["text"] = "Calculating..."
     try: 
         path = import_file_path.get()
