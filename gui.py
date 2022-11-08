@@ -58,7 +58,7 @@ def calculate():
         messagebox.showerror("Error", "Can't open file, check if file exists")
         logging.exception('import file not found')
         status["text"] = "Check if import file exists"  
-    #paimami visi uzpildyti laukeliai
+
     try:
         cost1 = float(field_cost1.get())
         cost2 = float(field_cost2.get()) 
@@ -88,7 +88,6 @@ def calculate():
         value_d3 = ["D", cost3, float(field12.get())/100]
         value_d4 = ["D", cost3, float(field16.get())/100]
        
-        #skaiciavimo funkcija
         markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1, value_b2, value_b3, value_b4, value_c1, value_c2, value_c3, value_c4, value_d1, value_d2, value_d3, value_d4, additional_taxes)
         save_to_csv(file_save_path())
         status["text"] = "Calculated!"
