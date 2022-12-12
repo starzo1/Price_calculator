@@ -2,9 +2,9 @@ import pandas as pd
 from pathlib import Path
 
 
+transformed_dict = {}
+
 def read_file(import_path):
-    global transformed_dict
-    transformed_dict = {}
     df = pd.read_csv(import_path, usecols = ['No.','Purchase price','Ranking by sales revenue'])
     df["Ranking by sales revenue"].fillna("B", inplace = True)
     dictionaries_list = df.to_dict('records')
@@ -16,7 +16,8 @@ def read_file(import_path):
 
 def markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1, value_b2, value_b3, value_b4, value_c1, value_c2, value_c3, value_c4, value_d1, value_d2, value_d3, value_d4, additional_tax):
     global df_edited
-    df_edited = df_read
+
+    df_edited = df_read.copy()
     final_price = []
     for cost, turnover in transformed_dict.values():
         float(cost)
@@ -49,7 +50,6 @@ def markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1
             cost = (cost * (1 + value_c3[2]))
         elif  value_c4[1] < cost and turnover == value_c4[0]:
             cost = (cost * (1 + value_c4[2]))   
-        
     #D
         elif  cost <= value_d1[1] and turnover == value_d1[0]:
             cost = (cost * (1 + value_d1[2]))  
@@ -63,12 +63,6 @@ def markup_calculation(df_read, value_a1, value_a2, value_a3, value_a4, value_b1
         
     df_edited['Final price'] = final_price
     return df_edited
-
-def config_import_strip(text):
-    stripped = text.rstrip("')\n")
-    stripped = stripped.replace("('", "").replace("'", "")
-    result = stripped.split(", ")
-    return result
 
 def save_to_csv(file_path):
     my_file = Path(file_path)

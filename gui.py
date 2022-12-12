@@ -1,8 +1,9 @@
 import logging
+import pandas as pd
 from tkinter import *
 from tkinter import ttk, messagebox
 from tkinter import filedialog as fd
-from calculation import markup_calculation, save_to_csv, read_file, config_import_strip
+from calculation import markup_calculation, save_to_csv, read_file
 
 
 logging.basicConfig(filename="calculation.log", level=logging.ERROR, format="%(asctime)s:%(levelname)s:%(message)s")
@@ -33,7 +34,6 @@ def choose_file():
     import_file_var.set(file_path)
     
 def choose_folder():
-    
     folder_path = fd.askdirectory(initialdir="/", title="Select a folder")
     export_folder_var.set(folder_path)
 
@@ -99,68 +99,76 @@ def calculate():
    
     except UnboundLocalError:
         logging.exception('empty dataframe error')
-    
+  
 def import_config():
-    file_name = fd.askopenfilename(initialdir="/", title="Select a file", filetypes=[("Text files", "*.txt")])
-    fields1 = [field_cost1, field1, field2, field3, field4]
-    fields2 = [field_cost2, field5, field6, field7, field8]
-    fields3 = [field_cost3, field9, field10, field11, field12]
-    fields4 = [field13, field14, field15, field16]
-    
     try:
-        with open(file_name, 'r') as file_object:
-            lines = file_object.readlines()
-            line1 = lines[0]
-            line2 = lines[1]
-            line3 = lines[2]
-            line4 = lines[3]
-            status["text"] = "Mark-up's imported"
+        file_name = fd.askopenfilename(initialdir="/", title="Select a file", filetypes=[("CSV files", "*.csv")])
+        df = pd.read_csv(file_name)
+        status["text"] = "Mark-up's imported"
     except FileNotFoundError:
         logging.exception('file not found importing settings')
-        status["text"] = "File not found!"
+        status["text"] = "File not found!"    
+        
+    cost_fields = [field_cost1, field_cost2, field_cost3, field_cost3]
+    fields1 = [field1, field5, field9, field13]
+    fields2 = [field2, field6, field10, field14]
+    fields3 = [field3, field7, field11, field15]
+    fields4 = [field4, field8, field12, field16]
     
+    cost_list = df["Cost"].values.tolist()
+    markup1_list = df["Mark-up1"].values.tolist()
+    markup2_list = df["Mark-up2"].values.tolist()
+    markup3_list = df["Mark-up3"].values.tolist()
+    markup4_list = df["Mark-up4"].values.tolist()
+  
     i = -1
-    for var in fields1:
-        i = i + 1
-        var.delete(0, END)
-        var.insert(0, config_import_strip(line1)[i])
-    z = -1
-    for var in fields2:
-        z = z + 1
-        var.delete(0, END)
-        var.insert(0, config_import_strip(line2)[z])
-    c = -1
-    for var in fields3:
-        c = c + 1
-        var.delete(0, END)
-        var.insert(0, config_import_strip(line3)[c])
-    d = -1
-    for var in fields4:
-        d = d + 1
-        var.delete(0, END)
-        var.insert(0, config_import_strip(line4)[d])
+    for var0, var1, var2, var3, var4 in zip(cost_fields, fields1, fields2, fields3, fields4):
+         i = i + 1
+         cost_list
+         var0.delete(0, END)
+         var0.insert(0, cost_list[i])
+         var1.delete(0, END)
+         var1.insert(0, markup1_list[i])
+         var2.delete(0, END)
+         var2.insert(0, markup2_list[i])
+         var3.delete(0, END)
+         var3.insert(0, markup3_list[i])
+         var4.delete(0, END)
+         var4.insert(0, markup4_list[i])
+
     
 def export_config():
-    file_name = fd.asksaveasfilename(filetypes=[("Text files", "*.txt")], defaultextension='.txt', confirmoverwrite=True)
-    my_markup_settings = [
-                        (field_cost1, field1, field2, field3, field4),
-                        (field_cost2, field5, field6, field7, field8 ),
-                        (field_cost3, field9, field10, field11, field12 ),
-                        (field_cost3, field13, field14, field15, field16)
-    ]
-    try:
-        with open(file_name, 'w') as file_object:
-            for line in my_markup_settings:
-                lines = ()
-                for entry in line:
-                    lines = lines + (entry.get(),)
-                file_object.write(f"{lines}\n")  
-        status["text"] = "Settings saved to file"
-    except FileNotFoundError:
-        logging.exception('file not found exporting settings')
-        return "cancelled"
+    file_name_csv = fd.asksaveasfilename(filetypes=[("CSV files", "*.csv")], defaultextension='.csv', confirmoverwrite=True)
+    settings_cost = [field_cost1, field_cost2, field_cost3, field_cost3]
+    settings_markups1 = [field1, field5, field9, field13]
+    settings_markups2 = [field2, field6, field10, field14]
+    settings_markups3 = [field3, field7, field11, field15]
+    settings_markups4 = [field4, field8, field12, field16]
     
- 
+    column_cost = [] 
+    column_markups_a = []
+    column_markups_b = []
+    column_markups_c = []
+    column_markups_d = []
+    try:
+        for cost, mu1, mu2, mu3, mu4 in zip(settings_cost, settings_markups1, settings_markups2, settings_markups3, settings_markups4):
+            column_cost.append(cost.get())
+            column_markups_a.append(mu1.get())
+            column_markups_b.append(mu2.get())
+            column_markups_c.append(mu3.get())
+            column_markups_d.append(mu4.get())
+        settings = {"Cost": column_cost,
+                    "Mark-up1": column_markups_a,
+                    "Mark-up2": column_markups_b,
+                    "Mark-up3": column_markups_c,
+                    "Mark-up4": column_markups_d,}
+        df = pd.DataFrame(settings)
+        df.to_csv(file_name_csv, index=False, header=True)
+    except FileNotFoundError:
+         logging.exception('file not found exporting settings')
+         return "cancelled"
+
+
 def reset():
     reset_fields = [
                     field_cost1, field1, field2, field3, field4,
@@ -223,9 +231,6 @@ field16 = ttk.Entry(frame1, width=10)
 field_cost1 = ttk.Entry(frame1, width=10)
 field_cost2 = ttk.Entry(frame1, width=10)
 field_cost3 = ttk.Entry(frame1, width=10)
-field_cost1.insert(0, "120")
-field_cost2.insert(0, "250")
-field_cost3.insert(0, "450")
 field_vat = ttk.Entry(frame3, width=10)
 field_vat.insert(0, "21")
 field_trnsp = ttk.Entry(frame3, width=10)
